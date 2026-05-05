@@ -1,0 +1,40 @@
+
+group(b-3)-Locate dataset (e.g., sample_weather.txt) for working on weather data which reads the text
+input files and finds average for temperature, dew point and wind speed.
+
+
+# Read file
+file = open("sample_whether.txt", "r")
+
+# Skip header
+next(file)
+
+temp_total = 0
+dew_total = 0
+wind_total = 0
+count = 0
+
+# Read line by line
+for line in file:
+    data = line.split()
+    
+    temp = float(data[1])
+    dew = float(data[2])
+    wind = float(data[3])
+    
+    temp_total += temp
+    dew_total += dew
+    wind_total += wind
+    count += 1
+
+file.close()
+
+# Calculate averages
+avg_temp = temp_total / count
+avg_dew = dew_total / count
+avg_wind = wind_total / count
+
+# Print results
+print("Average Temperature:", avg_temp)
+print("Average Dew Point:", avg_dew)
+print("Average Wind Speed:", avg_wind)
