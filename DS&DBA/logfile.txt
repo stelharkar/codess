@@ -1,0 +1,87 @@
+!apt-get update -qq
+!apt-get install -y -qq openjdk-17-jdk
+
+!wget -q https://archive.apache.org/dist/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz -O /content/hadoop.tar.gz
+!tar -xzf /content/hadoop.tar.gz -C /content/
+!mv /content/hadoop-3.3.6 /content/Hadoop
+
+import os
+os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-17-openjdk-amd64"
+os.environ["HADOOP_HOME"] = "/content/hadoop"
+os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ["HADOOP_HOME"] + "/bin:" + os.environ["PATH"]
+!java -version
+!hadoop version
+
+%%writefile /content/LogAnalysis.java
+import java.io.IOException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class LogAnalysis {
+
+    public static class LogMapper
+        extends Mapper<LongWritable, Text, Text, IntWritable> {
+
+        public void map(LongWritable key, Text value, Context context)
+            throws IOException, InterruptedException {
+
+            String[] parts = value.toString().split("\\s+", 2);
+
+            if (parts.length > 0 && !parts[0].isEmpty()) {
+                context.write(new Text(parts[0]), new IntWritable(1));
+            }
+        }
+    }
+
+    public static class LogReducer
+        extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+        public void reduce(Text key, Iterable<IntWritable> values,
+            Context context) throws IOException, InterruptedException {
+
+            int count = 0;
+            for (IntWritable value : values) {
+                count += value.get();
+            }
+            context.write(key, new IntWritable(count));
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Job job = Job.getInstance(new Configuration(), "Log Analysis");
+        job.setJarByClass(LogAnalysis.class);
+        job.setMapperClass(LogMapper.class);
+        job.setReducerClass(LogReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+
+
+!mkdir -p /content/logclasses
+!/usr/lib/jvm/java-17-openjdk-amd64/bin/javac -classpath "$(/content/hadoop/bin/hadoop classpath)" -d /content/logclasses /content/LogAnalysis.java
+
+
+!jar -cvf /content/loganalysis.jar -C /content/logclasses .
+
+
+!mkdir -p /content/loginput
+!printf "INFO System started\nERROR File not found\nINFO User logged in\nWARN Low memory\nERROR Connection failed\nINFO System stopped\n" > /content/loginput/system.log
+!cat /content/loginput/system.log
+
+
+!rm -rf /content/logoutput
+!/content/hadoop/bin/hadoop jar /content/loganalysis.jar LogAnalysis /content/loginput /content/logoutput
+
+
+!cat /content/logoutput/part-r-00000
+
