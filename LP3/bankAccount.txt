@@ -1,0 +1,22 @@
+pragma solidity ^0.8.0;
+
+contract BankAccount{
+
+uint public balance;
+
+function deposit() public payable{
+    balance +=msg.value;
+
+}
+function withdraw(uint amount) public{
+    require(amount>0,"greater");
+    require(amount<=balance,"insufficient");
+
+    balance -=amount;
+    payable(msg.sender).transfer(amount);
+}
+
+function showbalance()public view returns(uint){
+    return balance;
+}
+}
