@@ -1,0 +1,42 @@
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+
+# Customer data (Age, Balance)
+X = np.array([
+    [25, 1000], [30, 2000], [45, 5000],
+    [50, 6000], [35, 1500], [60, 8000],
+    [28, 1200], [55, 7000], [40, 3000],
+    [65, 9000]
+])
+
+# 0 = Stay, 1 = Leave
+y = np.array([1, 1, 0, 0, 1, 0, 1, 0, 0, 0])
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# Create neural network
+model = MLPClassifier(max_iter=2000, random_state=42)
+
+# Train model
+model.fit(X_train, y_train)
+
+# Test model
+pred = model.predict(X_test)
+
+# Display accuracy
+print("Accuracy:", accuracy_score(y_test, pred) * 100)
+
+# Predict new customer
+new = [[32, 2500]]
+result = model.predict(new)
+
+if result[0] == 1:
+    print("Customer will leave")
+else:
+    print("Customer will stay")

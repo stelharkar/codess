@@ -1,0 +1,20 @@
+n=int(input("enter number of items:"))
+items=[]
+
+for i in range(n):
+    profit=int(input("enter profit:"))
+    weight=int(input("enter weight:"))
+    ratio=profit/weight
+    items.append([ratio,profit,weight])
+capacity=int(input("enter capacity:"))
+
+items.sort(reverse=True)
+total=0
+for ratio,profit,weight in items:
+    if weight<=capacity:
+        total=total+profit
+        capacity=capacity-weight
+    else:
+        total=total+ratio*capacity
+        break
+print("max profit:",total)

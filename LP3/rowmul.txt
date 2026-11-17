@@ -1,0 +1,64 @@
+import threading
+import time
+
+#normal mul
+def normal(A,B):
+    n=len(A)
+    C=[[0]*n for _ in range(n) ]
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                C[i][j]=A[i][k]*B[k][j]
+    return C
+
+#cal one row
+def row_multiply(A,B,C,row):
+    n=len(A)
+    for j in range(n):
+            for k in range(n):
+                C[row][j]=A[row][k]*B[k][j]
+
+#mult mul
+def threaded(A,B):
+    n=len(A)
+    C=[[0]* n for _ in range(n)]
+    threads=[]
+    for i in range(n):
+        t=threading.Thread(target=row_multiply,args=(A,B,C,i))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+    return C
+
+#input
+n=int(input("Enter matrix size:"))
+print("Enter matrix A:")
+A=[list(map(int,input().split())) for _ in range(n)]
+
+print("Enter matrix B:")
+B=[list(map(int,input().split())) for _ in range(n)]
+
+#normal
+start=time.time()
+C1=normal(A,B)
+normal_time=time.time()-start
+
+#thread
+start=time.time()
+C2=threaded(A,B)
+thread_time=time.time()-start
+
+#output
+print("\n normal Result:")
+for row in C1:
+    print(row)
+
+print("\n threaded Result:")
+for row in C2:
+    print(row)
+
+print("\n normal Time:",normal_time)
+print("\n Threaded Time:",thread_time)
+
+    

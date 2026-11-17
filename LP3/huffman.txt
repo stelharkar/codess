@@ -1,0 +1,36 @@
+import heapq
+text=input("enter a string:")
+
+#count frequency
+freq={}
+for ch in text:
+    freq[ch]=freq.get(ch,0)+1
+
+#create min heap
+heap=[]
+count=0
+for ch,f in freq.items():
+    heapq.heappush(heap,(f,count,ch))
+    count +=1
+
+#huffman tree build
+while len(heap)>1:
+    left=heapq.heappop(heap)
+    right=heapq.heappop(heap)
+    new=(left[0]+right[0],count,left,right)
+    count +=1
+    heapq.heappush(heap,new)
+
+#generate code
+codes={}
+def generate(node,code=""):
+    if isinstance(node[2],str):
+        codes[node[2]]=code
+    else:
+        generate(node[2],code + "0")
+        generate(node[3],code + "1")
+generate(heap[0])
+print("huffman code:\n")
+for ch in codes:
+    print(ch,":",codes[ch])
+
